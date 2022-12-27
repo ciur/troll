@@ -1,38 +1,64 @@
 from django.db import models
 
 
-FOLDER_TYPE = 'folder'
-DOCUMENT_TYPE = 'document'
+NODE_TYPE_FOLDER = 'folder'
+NODE_TYPE_DOCUMENT = 'document'
 
-NODE_TYPES = (
-    (FOLDER_TYPE, 'folder'),
-    (DOCUMENT_TYPE, 'document')
-)
+OCR_STATUS_SUCCEEDED = 'succeeded'
+OCR_STATUS_RECEIVED = 'received'
+OCR_STATUS_STARTED = 'started'
+OCR_STATUS_FAILED = 'failed'
+OCR_STATUS_UNKNOWN = 'unknown'
+
+OCR_STATUS_CHOICES = [
+    ('unknown', 'Unknown'),
+    ('received', 'Received'),
+    ('started', 'Started'),
+    ('succeeded', 'Succeeded'),
+    ('failed', 'Failed'),
+]
 
 
 class Node(models.Model):
 
     parent = models.ForeignKey(
         "self",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
 
     title = models.CharField(max_length=256)
-    type = models.CharField(
-        max_length=8,
-        choices=NODE_TYPES,
-        default=DOCUMENT_TYPE,
-        null=False,
-        blank=False
-    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['parent', 'title'], name='unique title per parent'
             ),
-            models.CheckConstraint(
-                name="Node can be either document or folder only",
-                check=(models.Q(type__in=(FOLDER_TYPE, DOCUMENT_TYPE)))
-            )
         ]
+
+    @property
+    def type(self):
+        try:
+            self.folder
+        except Folder.DoesNotExist:
+            return NODE_TYPE_DOCUMENT
+        return NODE_TYPE_FOLDER
+
+    @property
+    def is_folder(self):
+        return self.type == NODE_TYPE_FOLDER
+
+    @property
+    def is_document(self):
+        return self.type == NODE_TYPE_DOCUMENT
+
+
+class Document(Node):
+    ocr_status = models.CharField(
+        choices=OCR_STATUS_CHOICES,
+        default=OCR_STATUS_UNKNOWN,
+        max_length=32
+    )
+
+class Folder(Node):
+    pass
