@@ -60,5 +60,11 @@ class Document(Node):
         max_length=32
     )
 
+    def __str__(self):
+        return f"Document({self.id}, {self.title})"
+
+
 class Folder(Node):
-    pass
+
+    def __str__(self):
+        return f"Folder({self.id}, {self.title})"

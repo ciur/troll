@@ -9,6 +9,7 @@ from core.models import (
     OCR_STATUS_UNKNOWN
 )
 
+from core.utils import get_descendants
 
 @pytest.mark.django_db
 def test_nodes_creation():
@@ -48,3 +49,5 @@ def test_nodes_type():
     assert node2.is_document is True
     assert node2.type == NODE_TYPE_DOCUMENT
     assert node2.document.ocr_status == OCR_STATUS_UNKNOWN
+
+
